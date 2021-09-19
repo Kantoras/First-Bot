@@ -18,7 +18,9 @@ const bot = new Telebot({
 });
 
 let ZahlenStore = 'Leer';
-let ZahlenCountStore = 0
+let ZahlenCountStore = 0;
+let Player1 = 0;
+let Player2 = 0;
 
 //FUNKTION
 bot.on('text', (msg) => {
@@ -135,24 +137,34 @@ bot.on(/^\/TicTacToe/i, (msg) => {
 bot.on(/^\/Player 1/i, (msg) => {          //(Checken ob ID für jeweilige rolle vergeben ist)
     console.log("Player 1 was pressed")
     console.log(msg)
-    Player1 = (msg.from.first_name+msg.from.last_name)
-    bot.sendMessage(msg.message.chat.id, `${Player1} is Player 1`)
-    if(Player1 ==! null){
+    if(Player1 === 0){
+        Player1 = msg.from.id
+        let PlayerName = msg.from.username || `${msg.from.first_name} ${msg.from.last_name}`
+        bot.sendMessage(msg.message.chat.id, `${PlayerName} is Player 1`)
+    }else{
         bot.sendMessage(msg.message.chat.id, `Player 1 is already taken!`)
+    }
+    
+    if(Players_Ready){
+        
     }
 });
 
 bot.on(/^\/Player 2/i, (msg) => {
     console.log("Player 2 was pressed")
     console.log(msg)
-    Player2 = (msg.from.first_name+msg.from.last_name)
-    bot.sendMessage(msg.message.chat.id, `${Player2} is Player 2`)
-    if(Player2 ==! null){
+    if(Player2 === 0){
+        Player2 = msg.from.id
+        let PlayerName = msg.from.username || `${msg.from.first_name} ${msg.from.last_name}`
+        bot.sendMessage(msg.message.chat.id, `${PlayerName} is Player 2`)
+    }else{
         bot.sendMessage(msg.message.chat.id, `Player 2 is already taken!`)
     }
+    
+    if(Players_Ready){
+        
+    }
 });
-
-
 
 //PC Specs Code
 bot.on(/^\/Test 3/i, (msg) => {
@@ -161,9 +173,58 @@ bot.on(/^\/Test 3/i, (msg) => {
         bot.sendMessage(msg.message.chat.id, 'Test 3')
 });
 
+bot.on('callbackQuery', (msg) => {
+	if ('inline_message_id' in msg) {	
+		var inlineId = msg.inline_message_id;
+	}else{
+		var chatId = msg.message.chat.id;
+		var messageId = msg.message.message_id;
+	}
+
+	var data = msg.data.split("_")
+    
+    if(data[0]) === "TTT"){
+    //Run code for TicTacToe here
+    }
+});
+
 //STARTBEFEHL (IMMER GANZ UNTEN)
 bot.start()
+
+function Players_Ready() {
+    if(Player1 !== 0 && Player2 !== 0) return true
+}
 
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 };
+
+function create_playboard(msg) {
+    //Get the random starting Player
+    let StartPlayer = getRandomInt(1)
+
+    //Generate Playboard
+    let replyMarkup = bot.inlineKeyboard([
+        [
+            bot.inlineButton("‎" , {callback: `TTT_P_1_1_${StartPlayer}_${Player1}_${Player2}`}),
+            bot.inlineButton("‎" , {callback: `TTT_P_1_2_${StartPlayer}_${Player1}_${Player2}`}),
+            bot.inlineButton("‎" , {callback: `TTT_P_1_3_${StartPlayer}_${Player1}_${Player2}`})
+        ],
+        [
+            bot.inlineButton("‎" , {callback: `TTT_P_2_1}_${StartPlayer}_${Player1}_${Player2}`}),
+            bot.inlineButton("‎" , {callback: `TTT_P_2_2}_${StartPlayer}_${Player1}_${Player2}`}),
+            bot.inlineButton("‎" , {callback: `TTT_P_2_3}_${StartPlayer}_${Player1}_${Player2}`})
+        ],
+        [
+            bot.inlineButton("‎" , {callback: `TTT_P_3_1_${StartPlayer}_${Player1}_${Player2}`}),
+            bot.inlineButton("‎" , {callback: `TTT_P_3_2_${StartPlayer}_${Player1}_${Player2}`}),
+            bot.inlineButton("‎" , {callback: `TTT_P_3_3_${StartPlayer}_${Player1}_${Player2}`})
+        ]
+    ]);
+    //Reset Players
+    Player1 = 0;
+    Player2 = 0;
+    
+    //Send Message with Playboard
+    bot.sendMessage(msg.chat.id, `Spielfläche:\nEs beginnt Spieler${StartPlayer}`, { replyMarkup }) 
+}
